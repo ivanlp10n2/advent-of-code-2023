@@ -28,15 +28,22 @@ trait AdventOfCodeApp extends IOApp {
     case Solution2 => readInput(inputSolution2).through(solution2)
   }
   override def run(args: List[String]): IO[ExitCode] = {
-    readAndProcess(Solution1).compile.onlyOrError
-      .flatTap(n => IO.println(Solution1.msg(n)))
-      .as(ExitCode.Success)
+    def solution1 = readAndProcess(Solution1).compile.onlyOrError.flatTap(n =>
+      IO.println(Solution1.msg(n))
+    )
+    def solution2 = readAndProcess(Solution2).compile.onlyOrError.flatTap(n =>
+      IO.println(Solution2.msg(n))
+    )
+    for {
+      _ <- solution1
+      _ <- solution2
+    } yield ExitCode.Success
   }
 
   sealed trait Solution {
     def msg(n: Int) = this match {
       case Solution1 => s"Result of Solution1 is : [$n]"
-      case Solution2 => s"Result of Solution3 is : [$n]"
+      case Solution2 => s"Result of Solution2 is : [$n]"
     }
   }
   final case object Solution1 extends Solution
