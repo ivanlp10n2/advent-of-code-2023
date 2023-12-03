@@ -35,7 +35,7 @@ class exercise1Test extends AsyncWordSpec with Matchers {
   }
   "get number ok" in {
     val input = "a1bcjiojca9ncc"
-    exercise1.importantFn(input) shouldBe 19
+    exercise1.captureFirstAndLastNumber(input) shouldBe 19
   }
 
   "intialize candiates" in {

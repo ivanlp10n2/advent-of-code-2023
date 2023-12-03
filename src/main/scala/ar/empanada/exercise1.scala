@@ -8,7 +8,7 @@ object exercise1 extends AdventOfCodeApp {
   override val inputSolution1: String = "./src/main/resources/input1-1.txt"
   override val inputSolution2: String = "./src/main/resources/input1-2.txt"
   override def solution1: fs2.Stream[IO, String] => fs2.Stream[IO, Int] =
-    line => line.map(importantFn).fold(0)((acc, n) => acc + n)
+    line => line.map(captureFirstAndLastNumber).fold(0)((acc, n) => acc + n)
 
   override def solution2: fs2.Stream[IO, String] => fs2.Stream[IO, Int] =
     line => line.map(completeSolution2).fold(0)((acc, n) => acc + n)
@@ -25,9 +25,9 @@ object exercise1 extends AdventOfCodeApp {
     9 -> "nine"
   )
 
-  def completeSolution2 = captureStringNumbers andThen importantFn
+  def completeSolution2 = captureStringNumbers andThen captureFirstAndLastNumber
 
-  def importantFn: String => Int = line => {
+  def captureFirstAndLastNumber: String => Int = line => {
     val numbersInLine = line.filter(_.isDigit)
     val first = numbersInLine.head.toString.toInt
     if (numbersInLine.size == 1) buildNumber(first, first)
@@ -39,7 +39,7 @@ object exercise1 extends AdventOfCodeApp {
 
 
   def captureStringNumbers: String => String = line => {
-    def _importantFn2(
+    def recCaptureStringNumbers(
         str: List[Char],
         candidates: Map[Char, List[Position]] = initializeCandidates,
         acc: List[Int] = List.empty
@@ -47,24 +47,24 @@ object exercise1 extends AdventOfCodeApp {
       str match {
         case Nil => acc.map(_.toString).mkString
         case ::(head, tail) if head.isDigit =>
-          _importantFn2(tail, acc = head.toString.toInt :: acc)
+          recCaptureStringNumbers(tail, acc = head.toString.toInt :: acc)
         case head :: tail =>
           val maybeCandidates = candidates.getOrElse(head, List.empty)
           val hasCompleted = maybeCandidates.filter(_.isCompleted)
           val values = candidates.values.flatten.toList
-          if (maybeCandidates.isEmpty) _importantFn2(tail, acc = acc)
+          if (maybeCandidates.isEmpty) recCaptureStringNumbers(tail, acc = acc)
           else if (hasCompleted.nonEmpty)
-            _importantFn2(
+            recCaptureStringNumbers(
               tail,
               candidatesNextGen(maybeCandidates, values),
               acc = hasCompleted.head.number :: acc
             )
           else {
-            _importantFn2(tail, candidatesNextGen(maybeCandidates, values), acc)
+            recCaptureStringNumbers(tail, candidatesNextGen(maybeCandidates, values), acc)
           }
       }
     }
-    _importantFn2(line.toList).reverse
+    recCaptureStringNumbers(line.toList).reverse
   }
 
   def initializeCandidates: Map[Char, List[Position]] =
